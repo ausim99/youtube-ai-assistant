@@ -17,13 +17,18 @@ def get_database_url() -> str:
     return url
 
 
-engine = create_async_engine(
-    get_database_url(),
-    echo=settings.DEBUG,
-    future=True,
-    pool_size=10,
-    max_overflow=20,
-)
+db_url = get_database_url()
+is_sqlite = "sqlite" in db_url
+
+engine_kwargs = {
+    "echo": settings.DEBUG,
+    "future": True,
+}
+if not is_sqlite:
+    engine_kwargs["pool_size"] = 10
+    engine_kwargs["max_overflow"] = 20
+
+engine = create_async_engine(db_url, **engine_kwargs)
 
 async_session = async_sessionmaker(
     engine,
