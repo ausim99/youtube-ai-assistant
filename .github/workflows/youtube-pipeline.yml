@@ -124,13 +124,17 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          pip install aiohttp python-dotenv 2>/dev/null
           python -c "
-          import asyncio, os, sys
-          sys.path.insert(0, 'backend')
-          from agents.telegram_agent import TelegramAgent
-          async def notify():
-              t = TelegramAgent()
-              await t.send_notification('Pipeline Failed', '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}', is_error=True)
-          asyncio.run(notify())
+          import urllib.request, urllib.parse, json, os
+          bot = os.environ.get('TELEGRAM_BOT_TOKEN', '')
+          chat = os.environ.get('TELEGRAM_CHAT_ID', '')
+          if not bot or not chat:
+              print('Telegram not configured, skipping notification')
+              exit(0)
+          text = f'PIPELINE FAILED\\n\\nCheck: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+          url = f'https://api.telegram.org/bot{bot}/sendMessage'
+          data = json.dumps({'chat_id': chat, 'text': text[:4096]}).encode()
+          req = urllib.request.Request(url, data, {'Content-Type': 'application/json'})
+          urllib.request.urlopen(req)
+          print('Notification sent')
           "

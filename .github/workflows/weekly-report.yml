@@ -15,41 +15,48 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          cache: "pip"
 
       - name: Install dependencies
         run: |
-          pip install aiohttp python-dotenv sqlalchemy aiosqlite 2>/dev/null
+          pip install aiohttp python-dotenv sqlalchemy aiosqlite
 
-      - name: Generate weekly report
+      - name: Generate and send weekly report
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          DATABASE_URL: sqlite:///./storage/youtube_ai.db
+          DATABASE_URL: sqlite:///./backend/storage/youtube_ai.db
           APP_ENV: production
         run: |
           python -c "
-          import asyncio, sys
+          import os, sys
           sys.path.insert(0, 'backend')
 
-          from agents.telegram_agent import TelegramAgent
+          from sqlalchemy import create_engine, func, select
+          from sqlalchemy.orm import Session, sessionmaker
+          from database.models.models import ContentIdea, VideoScript, GeneratedVideo, YouTubeUpload
 
-          async def weekly():
-              t = TelegramAgent()
-              report = f'''
-          📊 <b>Weekly Report</b>
-          {'─' * 25}
+          engine = create_engine(os.environ.get('DATABASE_URL', 'sqlite:///./backend/storage/youtube_ai.db'))
+          SessionLocal = sessionmaker(bind=engine)
 
-          <b>Channel:</b> AI Bangla (Bn)
-          <b>Period:</b> Last 7 days
+          with SessionLocal() as db:
+              ideas = db.execute(select(func.count(ContentIdea.id))).scalar() or 0
+              scripts = db.execute(select(func.count(VideoScript.id))).scalar() or 0
+              videos = db.execute(select(func.count(GeneratedVideo.id))).scalar() or 0
+              uploads = db.execute(select(func.count(YouTubeUpload.id))).scalar() or 0
+              published = db.execute(select(func.count(YouTubeUpload.id)).where(YouTubeUpload.status == 'published')).scalar() or 0
 
-          <b>Pipeline:</b> Active
-          <b>Schedule:</b> Daily @ 12:00 UTC
+          report = f'📊 <b>Weekly Report</b>\n' \
+                   f'{\"─\" * 25}\n' \
+                   f'Ideas: {ideas}\nScripts: {scripts}\nVideos: {videos}\n' \
+                   f'Uploads: {uploads}\nPublished: {published}\n\n' \
+                   f'<a href=\"${{ github.server_url }}/${{ github.repository }}/actions\">View Actions</a>'
 
-          <b>Check logs:</b> ${{ github.server_url }}/${{ github.repository }}/actions
-          <b>Dashboard:</b> Your Vercel URL
-          '''
-              await t._send_message(report.strip())
-
-          asyncio.run(weekly())
+          import urllib.request, json
+          bot = os.environ.get('TELEGRAM_BOT_TOKEN', '')
+          chat = os.environ.get('TELEGRAM_CHAT_ID', '')
+          if bot and chat:
+              url = f'https://api.telegram.org/bot{bot}/sendMessage'
+              data = json.dumps({'chat_id': chat, 'text': report[:4096], 'parse_mode': 'HTML'}).encode()
+              urllib.request.urlopen(urllib.request.Request(url, data, {'Content-Type': 'application/json'}))
+              print('Weekly report sent')
           "
