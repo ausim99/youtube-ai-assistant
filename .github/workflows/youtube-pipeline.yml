@@ -89,7 +89,7 @@ jobs:
 
       - name: Create storage directories
         run: |
-          mkdir -p storage/logs storage/videos storage/audio storage/images storage/thumbnails
+          mkdir -p backend/storage/logs backend/storage/videos backend/storage/audio backend/storage/images backend/storage/thumbnails
 
       - name: Run Full Pipeline
         env:
@@ -124,8 +124,8 @@ jobs:
         with:
           name: pipeline-output-${{ github.run_id }}
           path: |
-            storage/logs/
-            storage/videos/
+            backend/storage/logs/
+            backend/storage/videos/
           retention-days: 7
 
       - name: Notify on failure
