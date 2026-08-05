@@ -1,5 +1,6 @@
 {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   "last_run": "2026-08-05 15:47:11 UTC",
   "category": "ai-tools",
   "resolution": "1080x1920",
@@ -19,6 +20,17 @@
     "video_id": "111b0c65-e1c2-4451-a495-7926405be7ba",
     "upload_success": true,
     "youtube_video_id": "IcD3RMq8ErQ",
+>>>>>>> Stashed changes
+=======
+  "last_run": "2026-08-05 16:40:42 UTC",
+  "category": "gemini",
+  "resolution": "1080x1920",
+  "results": {
+    "ideas": 1,
+    "script_id": "bf65fd10-9ed1-41d1-a116-38dc3b25401d",
+    "video_id": "502373fb-ad5d-41b5-8651-e3b10483a0ae",
+    "upload_success": true,
+    "youtube_video_id": "c0J54s13gb8",
 >>>>>>> Stashed changes
     "success": true
   }
