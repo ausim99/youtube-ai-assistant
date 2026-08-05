@@ -17,9 +17,11 @@ from agents.video_agent import VideoAgent
 from agents.upload_agent import UploadAgent
 from agents.telegram_agent import TelegramAgent
 from database.models.models import ContentIdea, GeneratedVideo, TaskLog, VideoScript, YouTubeUpload
+from core.config.settings import get_settings
 from utils.logger import get_logger
 
 logger = get_logger()
+settings = get_settings()
 
 
 class AgentService:

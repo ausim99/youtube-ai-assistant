@@ -59,18 +59,29 @@ Today's date: {datetime.now().strftime('%Y-%m-%d')}"""
 
         try:
             cleaned = response.strip()
-            if cleaned.startswith("```"):
-                cleaned = cleaned.split("\n", 1)[1]
-                if cleaned.endswith("```"):
-                    cleaned = cleaned[:-3]
-                cleaned = cleaned.strip()
-                if cleaned.startswith("json"):
-                    cleaned = cleaned[4:].strip()
+            # Remove markdown code blocks of any length
+            while cleaned.startswith("`"):
+                idx = cleaned.find("\n")
+                if idx == -1:
+                    break
+                cleaned = cleaned[idx + 1:].strip()
+            if cleaned.endswith("```"):
+                cleaned = cleaned[:-3].strip()
+            if cleaned.lower().startswith("json"):
+                cleaned = cleaned[4:].strip()
+
+            # Try to find JSON array in the response
+            if not cleaned.startswith("["):
+                start = cleaned.find("[")
+                end = cleaned.rfind("]")
+                if start != -1 and end != -1 and end > start:
+                    cleaned = cleaned[start:end + 1]
 
             ideas = json.loads(cleaned)
             logger.info(f"IdeaAgent: Generated {len(ideas)} ideas")
+            print(f"  Generated idea: {ideas[0].get('title_bn', 'N/A')[:60] if ideas else 'none'}", flush=True)
             return ideas
         except json.JSONDecodeError as e:
             logger.error(f"IdeaAgent: Failed to parse response: {e}")
-            logger.error(f"Raw response: {response[:500]}")
+            print(f"  Raw response (first 300 chars): {response[:300]}", flush=True)
             return []

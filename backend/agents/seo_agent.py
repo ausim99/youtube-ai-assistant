@@ -58,13 +58,20 @@ Generate ALL fields as JSON."""
 
         try:
             cleaned = response.strip()
-            if cleaned.startswith("```"):
-                cleaned = cleaned.split("\n", 1)[1]
-                if cleaned.endswith("```"):
-                    cleaned = cleaned[:-3]
-                cleaned = cleaned.strip()
-                if cleaned.startswith("json"):
-                    cleaned = cleaned[4:].strip()
+            while cleaned.startswith("`"):
+                idx = cleaned.find("\n")
+                if idx == -1:
+                    break
+                cleaned = cleaned[idx + 1:].strip()
+            if cleaned.endswith("```"):
+                cleaned = cleaned[:-3].strip()
+            if cleaned.lower().startswith("json"):
+                cleaned = cleaned[4:].strip()
+            if not cleaned.startswith("{"):
+                start = cleaned.find("{")
+                end = cleaned.rfind("}")
+                if start != -1 and end != -1 and end > start:
+                    cleaned = cleaned[start:end + 1]
 
             seo_data = json.loads(cleaned)
             logger.info(f"SEOAgent: Generated SEO with {len(seo_data.get('tags', []))} tags")

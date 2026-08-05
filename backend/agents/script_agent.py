@@ -67,19 +67,28 @@ Generate the complete script now."""
 
         try:
             cleaned = response.strip()
-            if cleaned.startswith("```"):
-                cleaned = cleaned.split("\n", 1)[1]
-                if cleaned.endswith("```"):
-                    cleaned = cleaned[:-3]
-                cleaned = cleaned.strip()
-                if cleaned.startswith("json"):
-                    cleaned = cleaned[4:].strip()
+            while cleaned.startswith("`"):
+                idx = cleaned.find("\n")
+                if idx == -1:
+                    break
+                cleaned = cleaned[idx + 1:].strip()
+            if cleaned.endswith("```"):
+                cleaned = cleaned[:-3].strip()
+            if cleaned.lower().startswith("json"):
+                cleaned = cleaned[4:].strip()
+            if not cleaned.startswith("{"):
+                start = cleaned.find("{")
+                end = cleaned.rfind("}")
+                if start != -1 and end != -1 and end > start:
+                    cleaned = cleaned[start:end + 1]
 
             script = json.loads(cleaned)
             logger.info(f"ScriptAgent: Generated {script.get('word_count', 0)} word script")
+            print(f"  Script: {script.get('title', 'N/A')[:60]}", flush=True)
             return script
         except json.JSONDecodeError as e:
             logger.error(f"ScriptAgent: Failed to parse response: {e}")
+            print(f"  Raw response (first 300 chars): {response[:300]}", flush=True)
             return {
                 "title": idea_title,
                 "script_bn": response[:2000],
