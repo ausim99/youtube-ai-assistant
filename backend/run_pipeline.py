@@ -65,7 +65,7 @@ async def run():
         )
         return
 
-    await send_telegram_alert(f"Pipeline started: {category} ({resolution})")
+    await send_telegram_alert(f"🎬 Pipeline started\n🏷️  {category} | {resolution}")
 
     log("STEP 1/8", "Generating content ideas...")
     try:

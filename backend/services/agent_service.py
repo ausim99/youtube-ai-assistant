@@ -177,9 +177,10 @@ class AgentService:
         await self.db.commit()
 
         telegram = TelegramAgent()
-        await telegram.send_notification(
-            "Video Generation Complete",
-            f"Title: {script.title}\nResolution: {resolution}",
+        await telegram.send_video_complete(
+            title=script.title,
+            resolution=resolution,
+            duration=video_result.get("duration_seconds", 60),
         )
 
         return {
@@ -239,15 +240,14 @@ class AgentService:
 
         telegram = TelegramAgent()
         if upload_result.get("success"):
-            await telegram.send_video_link(
+            await telegram.send_upload_success(
                 db_upload.title or "New Video",
                 upload_result["youtube_video_id"],
             )
         else:
-            await telegram.send_notification(
-                "Upload Failed",
-                f"Error: {upload_result.get('error')}",
-                is_error=True,
+            await telegram.send_upload_failed(
+                db_upload.title or "New Video",
+                upload_result.get("error", "Unknown error"),
             )
 
         return {"success": upload_result.get("success"), "youtube_video_id": upload_result.get("youtube_video_id")}
