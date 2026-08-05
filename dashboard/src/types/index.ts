@@ -37,6 +37,7 @@ export interface GeneratedVideo {
   subtitle_path?: string;
   resolution?: string;
   duration_seconds?: number;
+  file_size_mb?: number;
   status: string;
   error_message?: string;
   created_at: string;
