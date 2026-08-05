@@ -1,13 +1,13 @@
 {
-  "last_run": "Waiting for first pipeline run...",
+  "last_run": "2026-08-05 14:56:32 UTC",
   "category": "ai-tools",
   "resolution": "1080x1920",
   "results": {
-    "ideas": 0,
-    "script_id": "",
-    "video_id": "",
-    "upload_success": false,
-    "youtube_video_id": null,
-    "success": false
+    "ideas": 1,
+    "script_id": "34abb0e1-d18c-4cef-a22f-fb5de98cbcec",
+    "video_id": "0c580139-9f45-4068-82a9-b3919adb4c3e",
+    "upload_success": true,
+    "youtube_video_id": "2_yE62bd9Lg",
+    "success": true
   }
 }
