@@ -46,7 +46,7 @@ class ScriptResponse(BaseModel):
     title: str
     script_bn: str
     script_en: Optional[str] = None
-    hooks: Optional[list] = None
+    hooks: Optional[list[str]] = None
     duration_seconds: Optional[int] = None
     word_count: Optional[int] = None
     status: str

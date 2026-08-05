@@ -4,8 +4,6 @@ import uuid
 from datetime import datetime
 
 from celery import Celery
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
 
 from core.config.settings import get_settings
 from utils.logger import get_logger
@@ -84,7 +82,7 @@ def run_daily_pipeline(self):
 
             return results
 
-    return asyncio.get_event_loop().run_until_complete(_run())
+    return asyncio.run(_run())
 
 
 @celery_app.task(bind=True, name="tasks.pipeline.run_custom_pipeline", queue="youtube_ai")
@@ -123,4 +121,4 @@ def run_custom_pipeline(self, category: str = "ai-tools", resolution: str = "108
 
             return results
 
-    return asyncio.get_event_loop().run_until_complete(_run())
+    return asyncio.run(_run())

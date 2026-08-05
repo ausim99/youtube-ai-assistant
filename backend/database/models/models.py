@@ -2,9 +2,8 @@
 
 import uuid
 from datetime import datetime
-from typing import Optional
 
-from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer, String, Text, Boolean
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Text, Boolean
 from sqlalchemy.dialects.sqlite import JSON
 from sqlalchemy.orm import relationship
 

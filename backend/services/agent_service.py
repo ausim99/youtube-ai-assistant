@@ -31,7 +31,7 @@ class AgentService:
     def __init__(self, db: Optional[AsyncSession] = None):
         self.db = db
 
-    async def generate_ideas(self, category: str = "ai-tools", count: int = 5) -> list[dict]:
+    async def generate_ideas(self, category: str = "ai-tools", count: int = 5) -> list:
         agent = IdeaAgent()
         ideas = await agent.execute(category=category, count=count)
         saved = []
@@ -103,7 +103,13 @@ class AgentService:
 
         await self.db.commit()
         logger.info(f"AgentService: Generated script {db_script.id}")
-        return {"id": db_script.id, "title": db_script.title, "script_bn": db_script.script_bn}
+        return {
+            "id": db_script.id,
+            "title": db_script.title,
+            "script_bn": db_script.script_bn,
+            "status": db_script.status,
+            "created_at": db_script.created_at,
+        }
 
     async def generate_video(self, script_id: str, resolution: str = "1080x1920", add_music: bool = False) -> Optional[dict]:
         if not self.db:
@@ -200,6 +206,7 @@ class AgentService:
             "video_path": db_video.video_path,
             "thumbnail_path": db_video.thumbnail_path,
             "status": db_video.status,
+            "created_at": db_video.created_at,
         }
 
     async def upload_to_youtube(self, video_id: str, **kwargs) -> Optional[dict]:
@@ -262,7 +269,17 @@ class AgentService:
                 upload_result.get("error", "Unknown error"),
             )
 
-        return {"success": upload_result.get("success"), "youtube_video_id": upload_result.get("youtube_video_id")}
+        return {
+            "id": db_upload.id,
+            "video_id": db_upload.video_id,
+            "youtube_video_id": upload_result.get("youtube_video_id"),
+            "title": db_upload.title,
+            "description": db_upload.description,
+            "visibility": db_upload.visibility,
+            "status": db_upload.status,
+            "created_at": db_upload.created_at,
+            "success": upload_result.get("success"),
+        }
 
     async def run_full_pipeline(self, category: str = "ai-tools", resolution: str = "1080x1920", visibility: str = "private") -> dict:
         logger.info(f"AgentService: Starting full pipeline for {category}")
