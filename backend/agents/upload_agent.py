@@ -113,18 +113,36 @@ class UploadAgent(BaseAgent):
 
     def _get_youtube_service(self):
         credentials = None
+        upload_token = settings.YOUTUBE_REFRESH_TOKEN_UPLOAD or settings.YOUTUBE_REFRESH_TOKEN
+        youtube_token = settings.YOUTUBE_REFRESH_TOKEN or upload_token
 
-        if settings.YOUTUBE_REFRESH_TOKEN:
+        if upload_token:
+            try:
+                credentials = Credentials(
+                    token=None,
+                    refresh_token=upload_token,
+                    client_id=settings.YOUTUBE_CLIENT_ID,
+                    client_secret=settings.YOUTUBE_CLIENT_SECRET,
+                    token_uri="https://oauth2.googleapis.com/token",
+                    scopes=SCOPES,
+                )
+                credentials.refresh(Request())
+            except Exception as e:
+                logger.warning(f"Upload token failed: {e}, trying youtube token...")
+                credentials = None
+
+        if not credentials and youtube_token and youtube_token != upload_token:
             credentials = Credentials(
                 token=None,
-                refresh_token=settings.YOUTUBE_REFRESH_TOKEN,
+                refresh_token=youtube_token,
                 client_id=settings.YOUTUBE_CLIENT_ID,
                 client_secret=settings.YOUTUBE_CLIENT_SECRET,
                 token_uri="https://oauth2.googleapis.com/token",
                 scopes=SCOPES,
             )
             credentials.refresh(Request())
-        else:
+
+        if not credentials:
             credentials, _ = google.auth.default(scopes=SCOPES)
 
         return build("youtube", "v3", credentials=credentials)

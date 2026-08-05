@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     YOUTUBE_CLIENT_ID: str = ""
     YOUTUBE_CLIENT_SECRET: str = ""
     YOUTUBE_REFRESH_TOKEN: str = ""
+    YOUTUBE_REFRESH_TOKEN_UPLOAD: str = ""
     YOUTUBE_CHANNEL_ID: str = ""
 
     # Telegram
