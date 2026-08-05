@@ -51,8 +51,9 @@ async def run():
     category = os.getenv("PIPELINE_CATEGORY", "ai-tools")
     resolution = os.getenv("PIPELINE_RESOLUTION", "1080x1920")
     visibility = os.getenv("PIPELINE_VISIBILITY", "private")
+    duration = int(os.getenv("PIPELINE_DURATION", os.getenv("VIDEO_DURATION", "60")))
 
-    log("START", f"Pipeline: category={category}, resolution={resolution}, visibility={visibility}")
+    log("START", f"Pipeline: category={category}, resolution={resolution}, visibility={visibility}, duration={duration}s")
     keys = check_prerequisites()
 
     if not keys.get("GEMINI_API_KEY"):

@@ -42,11 +42,17 @@ on:
           - private
           - public
           - unlisted
+      duration:
+        description: "Video duration (seconds, max 60 for shorts)"
+        required: false
+        default: "60"
+        type: string
 
 env:
   PIPELINE_CATEGORY: ${{ inputs.category || vars.DEFAULT_CATEGORY || 'ai-tools' }}
   PIPELINE_RESOLUTION: ${{ inputs.resolution || '1080x1920' }}
   PIPELINE_VISIBILITY: ${{ inputs.visibility || 'private' }}
+  PIPELINE_DURATION: ${{ inputs.duration || vars.VIDEO_DURATION || '60' }}
 
 jobs:
   pipeline:
@@ -105,6 +111,7 @@ jobs:
           CHANNEL_NAME: ${{ vars.CHANNEL_NAME || 'AI Bangla' }}
           VOICE_NAME: ${{ vars.VOICE_NAME || 'bn-IN-Wavenet-A' }}
           SHORTS_ENABLED: ${{ vars.SHORTS_ENABLED || 'true' }}
+          VIDEO_DURATION: ${{ vars.VIDEO_DURATION || '60' }}
           APP_ENV: production
         run: |
           cd backend

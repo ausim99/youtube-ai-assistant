@@ -58,6 +58,7 @@ class AgentService:
         return ideas
 
     async def generate_script(self, idea_id: str, duration_seconds: int = 60) -> Optional[dict]:
+        duration_seconds = min(duration_seconds, 60)  # cap at 60s for shorts
         if not self.db:
             return None
 
@@ -253,7 +254,7 @@ class AgentService:
 
         idea_id = ideas[0].id if hasattr(ideas[0], "id") else ""
         print("[PIPELINE] Step 3/7: Writing Bangla script...", flush=True)
-        script = await self.generate_script(idea_id, duration_seconds=60)
+        script = await self.generate_script(idea_id, duration_seconds=min(60, int(settings.VIDEO_DURATION)))
         if not script:
             return {"success": False, "error": "Script generation failed"}
         results["script_id"] = script["id"]
