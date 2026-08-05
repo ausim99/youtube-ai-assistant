@@ -55,7 +55,7 @@ class AgentService:
             await self.db.commit()
 
         logger.info(f"AgentService: Generated and saved {len(saved)} ideas")
-        return ideas
+        return saved
 
     async def generate_script(self, idea_id: str, duration_seconds: int = 60) -> Optional[dict]:
         duration_seconds = min(duration_seconds, 60)  # cap at 60s for shorts
