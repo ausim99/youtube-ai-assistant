@@ -118,6 +118,14 @@ jobs:
           cd backend
           python run_pipeline.py
 
+      - name: Commit results to repo
+        if: always()
+        run: |
+          git config user.name "YouTube AI Bot"
+          git config user.email "bot@youtube-ai.local"
+          git add data/pipeline_results.json 2>/dev/null || true
+          git diff --staged --quiet || (git commit -m "Update pipeline results" && git push)
+
       - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4

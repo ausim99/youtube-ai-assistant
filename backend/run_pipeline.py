@@ -97,6 +97,22 @@ async def run():
         await send_telegram_alert(f"Pipeline crashed: {e}")
         sys.exit(1)
 
+    # Save results JSON for dashboard
+    try:
+        import json as j
+        out = {
+            "last_run": time.strftime("%Y-%m-%d %H:%M:%S UTC"),
+            "category": category,
+            "resolution": resolution,
+            "results": results if isinstance(results, dict) else {},
+        }
+        os.makedirs("../data", exist_ok=True)
+        with open("../data/pipeline_results.json", "w", encoding="utf-8") as f:
+            j.dump(out, f, ensure_ascii=False, indent=2)
+        log("SAVE", "Results saved to data/pipeline_results.json")
+    except Exception as e:
+        log("WARN", f"Could not save results: {e}")
+
 
 if __name__ == "__main__":
     asyncio.run(run())

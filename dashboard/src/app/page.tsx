@@ -22,15 +22,18 @@ import {
   AlertTriangle,
   TrendingUp,
 } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, PipelineResult } from "@/lib/api";
 import type { DashboardStats } from "@/types";
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [lastRun, setLastRun] = useState<PipelineResult | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.getStats().then(setStats).finally(() => setLoading(false));
+    Promise.all([api.getStats(), api.getLastRun()])
+      .then(([s, r]) => { setStats(s); setLastRun(r); })
+      .finally(() => setLoading(false));
   }, []);
 
   if (loading) {
@@ -68,6 +71,11 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
         <p className="text-gray-500 dark:text-gray-400 mt-1">
           YouTube AI Assistant overview
+          {lastRun && (
+            <span className="ml-3 text-xs bg-green-500/10 text-green-500 px-2 py-0.5 rounded-full">
+              Last run: {lastRun.last_run}
+            </span>
+          )}
         </p>
       </div>
 
