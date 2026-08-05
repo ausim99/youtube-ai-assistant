@@ -143,9 +143,18 @@ class AgentService:
         image_paths = [image_result["path"]] if image_result.get("success") else []
 
         video_agent = VideoAgent()
+        text_overlays = script.scenes
+        if script.scenes:
+            text_overlays = [s.get("text", "") for s in script.scenes if isinstance(s, dict) and s.get("text")]
+        if not text_overlays and script.hooks:
+            text_overlays = script.hooks[:6]
+        if not text_overlays:
+            text_overlays = script.script_bn.split("\n")[:6]
+
         video_result = await video_agent.execute(
             audio_path=voice_result.get("path", ""),
             image_paths=image_paths,
+            text_overlays=text_overlays,
             output_path=f"storage/videos/{video_id}.mp4",
             resolution=resolution,
             add_music=add_music,
