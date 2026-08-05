@@ -122,7 +122,7 @@ class TaskLog(Base):
     progress = Column(Integer, default=0)
     message = Column(Text)
     error_trace = Column(Text)
-    metadata = Column(JSON)
+    extra_data = Column(JSON)
     started_at = Column(DateTime, default=utcnow)
     completed_at = Column(DateTime)
 
