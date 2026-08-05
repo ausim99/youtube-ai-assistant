@@ -87,9 +87,9 @@ async def run():
                 await send_telegram_alert(f"Pipeline complete!\nVideo ID: {vid}\nCategory: {category}")
             else:
                 err = results.get("error", "Unknown")
-                log("FAIL", err)
-                await send_telegram_alert(f"Pipeline failed: {err}")
-                sys.exit(1)
+                log("WARN", f"Upload failed: {err}")
+                log("DONE", f"Video generated but upload failed. Check YouTube permissions.")
+                await send_telegram_alert(f"Video generated but upload failed: {err}")
 
     except Exception as e:
         log("CRASH", str(e))

@@ -77,11 +77,14 @@ class UploadAgent(BaseAgent):
             logger.info(f"UploadAgent: Uploaded video ID: {video_id}")
 
             if thumbnail_path and os.path.exists(thumbnail_path):
-                youtube.thumbnails().set(
-                    videoId=video_id,
-                    media_body=MediaFileUpload(thumbnail_path),
-                ).execute()
-                logger.info(f"UploadAgent: Thumbnail set for {video_id}")
+                try:
+                    youtube.thumbnails().set(
+                        videoId=video_id,
+                        media_body=MediaFileUpload(thumbnail_path),
+                    ).execute()
+                    logger.info(f"UploadAgent: Thumbnail set for {video_id}")
+                except Exception as e:
+                    logger.warning(f"UploadAgent: Thumbnail skipped - {e}")
 
             if scheduled_at and visibility == "private":
                 if isinstance(scheduled_at, str):
