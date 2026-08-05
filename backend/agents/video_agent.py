@@ -25,6 +25,7 @@ class VideoAgent(BaseAgent):
 
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         w, h = (1080, 1920) if resolution == "1080x1920" else (1920, 1080)
+        self._audio_path = audio_path
 
         print(f"  Creating professional video {w}x{h}...", flush=True)
 
@@ -35,6 +36,8 @@ class VideoAgent(BaseAgent):
                 return await self._create_blank(output_path, w, h, 10)
         except Exception as e:
             logger.error(f"VideoAgent failed: {e}")
+            if audio_path and os.path.exists(audio_path):
+                return await self._simple_audio_video(audio_path, output_path, w, h)
             return {"success": False, "error": str(e), "path": None}
 
     async def _build_pro_video(self, audio_path: str, stock_clips: list, texts: list, script: str, output: str, w: int, h: int) -> dict:
@@ -65,7 +68,7 @@ class VideoAgent(BaseAgent):
         concat_inputs = ""
 
         for tf, start in temp_files:
-            filter_parts.append(f"[{input_idx}:v]setpts=PTS-STARTPTS,scale={w}:{h}:force_original_aspect_ratio=crop[v{input_idx}]")
+            filter_parts.append(f"[{input_idx}:v]setpts=PTS-STARTPTS,scale={w}:{h}[v{input_idx}]")
             concat_inputs += f"[v{input_idx}]"
             input_idx += 1
 
@@ -127,16 +130,14 @@ class VideoAgent(BaseAgent):
 
     def _ken_burns_clip(self, input_path: str, output_path: str, duration: float, w: int, h: int):
         """Apply slow zoom (Ken Burns effect) to a clip."""
-        zoom_start = 1.0
-        zoom_end = 1.15
         cmd = [
             "ffmpeg", "-y", "-loglevel", "error",
             "-i", input_path,
             "-vf", (
-                f"scale={w + 100}:{h + 100}:force_original_aspect_ratio=increase,"
-                f"crop={w}:{h},"
-                f"zoompan=z='min(zoom+0.0005,{zoom_end})':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s={w}x{h},"
-                f"trim=duration={duration}"
+                f"scale=iw*2:ih*2,"
+                f"zoompan=z='min(zoom+0.0015,1.2)':d=1:s={w}x{h}:fps=24:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)',"
+                f"trim=duration={duration},"
+                f"fps=24,format=yuv420p"
             ),
             "-c:v", "libx264", "-preset", "ultrafast", "-crf", "26",
             "-an", "-t", str(duration),
@@ -163,3 +164,24 @@ class VideoAgent(BaseAgent):
         ]
         subprocess.run(cmd, check=True, capture_output=True)
         return {"success": True, "path": output_path, "file_size_mb": 0.3, "duration_seconds": duration}
+
+    async def _simple_audio_video(self, audio_path: str, output_path: str, w: int, h: int) -> dict:
+        """Fallback: solid background + audio (guaranteed to work)."""
+        probe = subprocess.run(
+            ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+             "-of", "default=noprint_wrappers=1:nokey=1", audio_path],
+            capture_output=True, text=True,
+        )
+        duration = float(probe.stdout.strip() or 60)
+        cmd = [
+            "ffmpeg", "-y", "-loglevel", "error",
+            "-f", "lavfi", "-i", f"color=c=0x121428:s={w}x{h}:d={duration}",
+            "-i", audio_path,
+            "-c:v", "libx264", "-preset", "ultrafast", "-crf", "28",
+            "-c:a", "aac", "-b:a", "128k",
+            "-shortest", output_path,
+        ]
+        subprocess.run(cmd, check=True, capture_output=True)
+        file_size = os.path.getsize(output_path) / (1024 * 1024)
+        print(f"  Simple video: {file_size:.1f}MB, {duration:.0f}s (with audio)", flush=True)
+        return {"success": True, "path": output_path, "file_size_mb": file_size, "duration_seconds": duration}
