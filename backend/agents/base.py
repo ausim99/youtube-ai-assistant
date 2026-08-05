@@ -21,6 +21,7 @@ class BaseAgent(ABC):
         self._setup_provider()
 
     def _setup_provider(self):
+        self.model = None
         if self.provider == "gemini" and settings.GEMINI_API_KEY:
             genai.configure(api_key=settings.GEMINI_API_KEY)
             self.model = genai.GenerativeModel("gemini-2.0-flash")
@@ -38,6 +39,8 @@ class BaseAgent(ABC):
                 base_url="https://api.x.ai/v1",
             )
             self.model = "grok-2-latest"
+        if not self.model:
+            logger.warning(f"BaseAgent: No AI provider configured for {self.provider}. Set API keys.")
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=30))
     async def generate(self, prompt: str, system_prompt: str | None = None) -> str:

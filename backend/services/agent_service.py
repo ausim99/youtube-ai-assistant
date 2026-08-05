@@ -244,25 +244,36 @@ class AgentService:
         logger.info(f"AgentService: Starting full pipeline for {category}")
         results = {}
 
+        print("[PIPELINE] Step 2/7: Generating content ideas...", flush=True)
         ideas = await self.generate_ideas(category=category, count=1)
         if not ideas:
             return {"success": False, "error": "No ideas generated"}
         results["ideas"] = len(ideas)
+        print(f"[PIPELINE] Step 2/7: Done - {len(ideas)} idea(s)", flush=True)
 
-        script = await self.generate_script(ideas[0].id if hasattr(ideas[0], "id") else "", duration_seconds=60)
+        idea_id = ideas[0].id if hasattr(ideas[0], "id") else ""
+        print("[PIPELINE] Step 3/7: Writing Bangla script...", flush=True)
+        script = await self.generate_script(idea_id, duration_seconds=60)
         if not script:
             return {"success": False, "error": "Script generation failed"}
         results["script_id"] = script["id"]
+        print(f"[PIPELINE] Step 3/7: Done - Script: {script.get('title', 'N/A')[:60]}", flush=True)
 
+        print("[PIPELINE] Step 4/7: Generating voice + images...", flush=True)
+        print("[PIPELINE] Step 5/7: Creating thumbnail...", flush=True)
+        print("[PIPELINE] Step 6/7: Assembling video...", flush=True)
         video = await self.generate_video(script["id"], resolution=resolution)
         if not video or video.get("status") != "completed":
             return {"success": False, "error": "Video generation failed", "results": results}
         results["video_id"] = video["id"]
+        print(f"[PIPELINE] Step 6/7: Done - Video assembled", flush=True)
 
+        print("[PIPELINE] Step 7/7: Uploading to YouTube...", flush=True)
         upload = await self.upload_to_youtube(video["id"], visibility=visibility)
         results["upload_success"] = upload.get("success", False)
         results["youtube_video_id"] = upload.get("youtube_video_id")
         results["success"] = upload.get("success", False)
+        print(f"[PIPELINE] Step 7/7: Done - Upload success: {upload.get('success')}", flush=True)
 
         logger.info(f"AgentService: Pipeline complete - {results}")
         return results
