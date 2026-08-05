@@ -54,6 +54,22 @@ services:
     restart: unless-stopped
     command: celery -A tasks.celery_app beat -l info
 
+  telegram_bot:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: youtube-ai-telegram
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app
+      - ./backend/storage:/app/storage
+    depends_on:
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    command: python telegram_bot.py
+
   dashboard:
     build:
       context: ./dashboard
