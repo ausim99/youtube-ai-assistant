@@ -1,7 +1,8 @@
-"""Image Agent - Generates AI images using Gemini/Flux/Stable Diffusion."""
+"""Image Agent - Generates images using free Pollinations.ai or local gradients."""
 
 import os
-import base64
+import time
+import urllib.request
 from typing import Any
 
 from agents.base import BaseAgent
@@ -13,7 +14,7 @@ logger = get_logger()
 
 
 class ImageAgent(BaseAgent):
-    """Generates AI images for video backgrounds and scenes."""
+    """Generates images using free API or local gradient fallback."""
 
     async def execute(self, **kwargs) -> dict[str, Any]:
         prompt_text = kwargs.get("prompt", "")
@@ -25,32 +26,64 @@ class ImageAgent(BaseAgent):
 
         logger.info(f"ImageAgent: Generating image: {prompt_text[:80]}...")
 
+        # Try Pollinations.ai (free, no API key)
+        result = self._try_pollinations(prompt_text, output_path, width, height)
+        if result.get("success"):
+            return result
+
+        # Try Gemini if available
+        if settings.GEMINI_API_KEY:
+            try:
+                result = await self._gemini_image(prompt_text, output_path, width, height)
+                if result.get("success"):
+                    return result
+            except Exception as e:
+                logger.warning(f"ImageAgent: Gemini failed: {e}")
+
+        # Fallback: create gradient locally
+        logger.info("ImageAgent: Using local gradient fallback")
+        self._create_gradient(output_path, width, height)
+        return {"success": True, "path": output_path, "provider": "local"}
+
+    def _try_pollinations(self, prompt: str, output_path: str, width: int, height: int) -> dict:
         try:
-            if self.provider == "gemini":
-                return await self._gemini_image(prompt_text, output_path, width, height)
-            else:
-                return await self._gemini_image(prompt_text, output_path, width, height)
+            import urllib.parse
+            encoded = urllib.parse.quote(prompt[:200])
+            url = f"https://image.pollinations.ai/prompt/{encoded}?width={width}&height={height}&nologo=true"
+            urllib.request.urlretrieve(url, output_path)
+            time.sleep(0.5)
+            if os.path.getsize(output_path) > 1000:
+                logger.info(f"ImageAgent: Pollinations saved to {output_path}")
+                return {"success": True, "path": output_path, "provider": "pollinations"}
         except Exception as e:
-            logger.error(f"ImageAgent: Generation failed: {e}")
-            return {"success": False, "error": str(e), "path": None}
+            logger.warning(f"ImageAgent: Pollinations failed: {e}")
+        return {"success": False, "path": None}
 
     async def _gemini_image(self, prompt: str, output_path: str, width: int, height: int) -> dict:
         import google.generativeai as genai
 
         genai.configure(api_key=settings.GEMINI_API_KEY)
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        response = model.generate_content(
+            f"Generate an abstract AI/tech themed background image. Description: {prompt}. Dark theme, {width}x{height}."
+        )
+        if hasattr(response, "text"):
+            return {"success": False}
 
-        model = genai.GenerativeModel("gemini-2.0-flash-exp-image-generation")
-        response = model.generate_content([
-            f"Generate an image: {prompt}. Style: Modern, high-quality YouTube thumbnail/video style. Resolution: {width}x{height}.",
-        ])
+        return {"success": False}
 
-        if response.candidates and response.candidates[0].content:
-            for part in response.candidates[0].content.parts:
-                if hasattr(part, "inline_data") and part.inline_data:
-                    image_data = base64.b64decode(part.inline_data.data)
-                    with open(output_path, "wb") as f:
-                        f.write(image_data)
-                    logger.info(f"ImageAgent: Saved to {output_path}")
-                    return {"success": True, "path": output_path, "provider": "gemini"}
+    def _create_gradient(self, output_path: str, width: int, height: int):
+        from PIL import Image
 
-        raise Exception("No image data in response")
+        img = Image.new("RGB", (width, height))
+        pixels = img.load()
+
+        for y in range(height):
+            r = int(15 + (y / height) * 30)
+            g = int(10 + (y / height) * 25)
+            b = int(40 + (y / height) * 40)
+            for x in range(width):
+                pixels[x, y] = (min(r, 60), min(g, 50), min(b, 100))
+
+        img.save(output_path, "PNG")
+        logger.info(f"ImageAgent: Gradient saved to {output_path}")
