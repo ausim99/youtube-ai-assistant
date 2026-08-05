@@ -1,0 +1,103 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: youtube-ai-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app
+      - ./backend/storage:/app/storage
+    depends_on:
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: youtube-ai-celery
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app
+      - ./backend/storage:/app/storage
+    depends_on:
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    command: celery -A tasks.celery_app worker -l info -Q youtube_ai --concurrency=2
+
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: youtube-ai-beat
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app
+    depends_on:
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    command: celery -A tasks.celery_app beat -l info
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: youtube-ai-dashboard
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    volumes:
+      - ./dashboard:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: youtube-ai-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: youtube-ai-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: youtube_ai
+      POSTGRES_PASSWORD: youtube_ai_pass
+      POSTGRES_DB: youtube_ai
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U youtube_ai"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  postgres_data:
