@@ -1,4 +1,5 @@
 {
+<<<<<<< Updated upstream
   "last_run": "2026-08-05 15:47:11 UTC",
   "category": "ai-tools",
   "resolution": "1080x1920",
@@ -8,6 +9,17 @@
     "video_id": "e925e4c7-c77e-4865-81f9-3490cbe2dc96",
     "upload_success": true,
     "youtube_video_id": "LDWZ-LK5Nh8",
+=======
+  "last_run": "2026-08-05 16:37:59 UTC",
+  "category": "automation",
+  "resolution": "1080x1920",
+  "results": {
+    "ideas": 1,
+    "script_id": "9b621f27-1461-4c0a-9a91-ff8d5d43b13f",
+    "video_id": "111b0c65-e1c2-4451-a495-7926405be7ba",
+    "upload_success": true,
+    "youtube_video_id": "IcD3RMq8ErQ",
+>>>>>>> Stashed changes
     "success": true
   }
 }
