@@ -13,6 +13,8 @@ on:
         options:
           - ai-tools
           - chatgpt
+          - claude
+          - gemini
           - prompt-engineering
           - automation
           - python
@@ -20,6 +22,7 @@ on:
           - tech-news
           - productivity
           - business-ai
+          - seo
           - coding
           - trending-ai
       resolution:
@@ -40,9 +43,15 @@ on:
           - public
           - unlisted
 
+env:
+  PIPELINE_CATEGORY: ${{ inputs.category || vars.DEFAULT_CATEGORY || 'ai-tools' }}
+  PIPELINE_RESOLUTION: ${{ inputs.resolution || '1080x1920' }}
+  PIPELINE_VISIBILITY: ${{ inputs.visibility || 'private' }}
+
 jobs:
   pipeline:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     services:
       redis:
@@ -56,17 +65,14 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: "pip"
 
-      - name: Setup FFmpeg
-        uses: FedericoCarboni/setup-ffmpeg@v3
+      - uses: FedericoCarboni/setup-ffmpeg@v3
 
       - name: Install dependencies
         run: |
@@ -77,7 +83,7 @@ jobs:
         run: |
           mkdir -p storage/logs storage/videos storage/audio storage/images storage/thumbnails
 
-      - name: Run Pipeline
+      - name: Run Full Pipeline
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
@@ -92,79 +98,39 @@ jobs:
           R2_SECRET_KEY: ${{ secrets.R2_SECRET_KEY }}
           R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
           R2_BUCKET: ${{ secrets.R2_BUCKET }}
-          DATABASE_URL: "sqlite:///./storage/youtube_ai.db"
+          DATABASE_URL: sqlite:///./storage/youtube_ai.db
           CHANNEL_LANGUAGE: ${{ vars.CHANNEL_LANGUAGE || 'bn' }}
           CHANNEL_NAME: ${{ vars.CHANNEL_NAME || 'AI Bangla' }}
-          DEFAULT_CATEGORY: ${{ vars.DEFAULT_CATEGORY || 'ai-tools' }}
           VOICE_NAME: ${{ vars.VOICE_NAME || 'bn-IN-Wavenet-A' }}
           SHORTS_ENABLED: ${{ vars.SHORTS_ENABLED || 'true' }}
+          APP_ENV: production
         run: |
-          python -c "
-          import asyncio
-          import sys
-          sys.path.insert(0, 'backend')
-
-          from services.agent_service import AgentService
-          from database.session import async_session
-          from agents.telegram_agent import TelegramAgent
-
-          async def run():
-              telegram = TelegramAgent()
-              await telegram.send_notification('Pipeline Started', 'YouTube AI pipeline is running...')
-
-              async with async_session() as db:
-                  service = AgentService(db)
-                  category = '${{ inputs.category || vars.DEFAULT_CATEGORY || ''ai-tools'' }}'
-                  resolution = '${{ inputs.resolution || ''1080x1920'' }}'
-                  visibility = '${{ inputs.visibility || ''private'' }}'
-
-                  results = await service.run_full_pipeline(category, resolution, visibility)
-
-                  if results.get('success'):
-                      await telegram.send_notification('Pipeline Complete', f\"Category: {category}\\nResolution: {resolution}\\nVideo ID: {results.get('youtube_video_id', 'N/A')}\")
-                  else:
-                      await telegram.send_notification('Pipeline Failed', str(results.get('error', 'Unknown error')), is_error=True)
-
-          asyncio.run(run())
-          "
+          cd backend
+          python run_pipeline.py
 
       - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pipeline-logs
-          path: storage/logs/
+          name: pipeline-output-${{ github.run_id }}
+          path: |
+            storage/logs/
+            storage/videos/
           retention-days: 7
 
-      - name: Notify failure
+      - name: Notify on failure
         if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
+          pip install aiohttp python-dotenv 2>/dev/null
           python -c "
-          import asyncio
+          import asyncio, os, sys
+          sys.path.insert(0, 'backend')
           from agents.telegram_agent import TelegramAgent
-
           async def notify():
-              telegram = TelegramAgent()
-              await telegram.send_notification('Pipeline Failed', 'Check GitHub Actions for details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}', is_error=True)
-
+              t = TelegramAgent()
+              await t.send_notification('Pipeline Failed', '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}', is_error=True)
           asyncio.run(notify())
           "
-
-  deploy-dashboard:
-    needs: pipeline
-    runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install Vercel CLI
-        run: npm install -g vercel
-
-      - name: Deploy to Vercel
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          cd dashboard
-          vercel deploy --prod --token=$VERCEL_TOKEN --yes

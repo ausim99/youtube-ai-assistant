@@ -1,0 +1,55 @@
+name: Weekly Report
+
+on:
+  schedule:
+    - cron: "0 10 * * 1"
+  workflow_dispatch:
+
+jobs:
+  weekly-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install aiohttp python-dotenv sqlalchemy aiosqlite 2>/dev/null
+
+      - name: Generate weekly report
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DATABASE_URL: sqlite:///./storage/youtube_ai.db
+          APP_ENV: production
+        run: |
+          python -c "
+          import asyncio, sys
+          sys.path.insert(0, 'backend')
+
+          from agents.telegram_agent import TelegramAgent
+
+          async def weekly():
+              t = TelegramAgent()
+              report = f'''
+          📊 <b>Weekly Report</b>
+          {'─' * 25}
+
+          <b>Channel:</b> AI Bangla (Bn)
+          <b>Period:</b> Last 7 days
+
+          <b>Pipeline:</b> Active
+          <b>Schedule:</b> Daily @ 12:00 UTC
+
+          <b>Check logs:</b> ${{ github.server_url }}/${{ github.repository }}/actions
+          <b>Dashboard:</b> Your Vercel URL
+          '''
+              await t._send_message(report.strip())
+
+          asyncio.run(weekly())
+          "
