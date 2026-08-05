@@ -29,6 +29,7 @@ openai==1.58.1
 anthropic==0.42.0
 
 # TTS
+gTTS==2.5.4
 google-cloud-texttospeech==2.21.0
 elevenlabs==1.50.0
 azure-cognitiveservices-speech==1.41.1
