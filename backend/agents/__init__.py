@@ -6,7 +6,7 @@ from agents.image_agent import ImageAgent
 from agents.thumbnail_agent import ThumbnailAgent
 from agents.video_agent import VideoAgent
 from agents.upload_agent import UploadAgent
-from agents.telegram_agent import TelegramAgent
+from agents.telegram_agent import TelegramAgentfrom agents.footage_agent import StockFootageAgent
 
 __all__ = [
     "IdeaAgent",
@@ -18,4 +18,5 @@ __all__ = [
     "VideoAgent",
     "UploadAgent",
     "TelegramAgent",
+    "StockFootageAgent",
 ]

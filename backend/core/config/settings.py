@@ -49,6 +49,10 @@ class Settings(BaseSettings):
     AZURE_SPEECH_REGION: str = "eastus"
     DEFAULT_TTS_PROVIDER: Literal["google", "elevenlabs", "azure"] = "google"
 
+    # Stock Footage & Music
+    PEXELS_API_KEY: str = ""
+    PIXABAY_API_KEY: str = ""
+
     # Cloud Storage (R2)
     R2_ACCESS_KEY: str = ""
     R2_SECRET_KEY: str = ""

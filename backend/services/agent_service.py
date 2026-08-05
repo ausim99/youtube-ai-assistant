@@ -16,6 +16,7 @@ from agents.thumbnail_agent import ThumbnailAgent
 from agents.video_agent import VideoAgent
 from agents.upload_agent import UploadAgent
 from agents.telegram_agent import TelegramAgent
+from agents.footage_agent import StockFootageAgent
 from database.models.models import ContentIdea, GeneratedVideo, TaskLog, VideoScript, YouTubeUpload
 from core.config.settings import get_settings
 from utils.logger import get_logger
@@ -132,15 +133,25 @@ class AgentService:
         if voice_result.get("success"):
             db_video.voice_path = voice_result["path"]
 
+        # Download stock footage
+        print("[PIPELINE] Downloading stock footage...", flush=True)
+        footage_agent = StockFootageAgent()
+        keywords = script.title.split()[:5] if script.title else ["technology", "AI"]
+        topic = " ".join(keywords) if keywords else "technology AI"
+        stock_clips = await footage_agent.execute(
+            topic=topic, count=4,
+            output_dir=f"storage/footage/{video_id}"
+        )
+
+        # Generate background image as fallback
         image_agent = ImageAgent()
         w, h = (1080, 1920) if resolution == "1080x1920" else (1920, 1080)
         image_result = await image_agent.execute(
             prompt=f"Abstract tech background, AI theme, gradient blue purple, {w}x{h}",
             output_path=f"storage/images/{video_id}_bg.png",
-            width=w,
-            height=h,
+            width=w, height=h,
         )
-        image_paths = [image_result["path"]] if image_result.get("success") else []
+        image_paths = stock_clips if stock_clips else ([image_result["path"]] if image_result.get("success") else [])
 
         video_agent = VideoAgent()
         text_overlays = script.scenes
@@ -155,6 +166,7 @@ class AgentService:
             audio_path=voice_result.get("path", ""),
             image_paths=image_paths,
             text_overlays=text_overlays,
+            script_bn=script.script_bn if script else "",
             output_path=f"storage/videos/{video_id}.mp4",
             resolution=resolution,
             add_music=add_music,
