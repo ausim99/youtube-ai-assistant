@@ -1,1 +1,13 @@
-{"last_run":"Not yet","category":"ai-tools","resolution":"1080x1920","results":{"ideas":0,"upload_success":false,"youtube_video_id":null,"success":false}}
+{
+  "last_run": "Waiting for first pipeline run...",
+  "category": "ai-tools",
+  "resolution": "1080x1920",
+  "results": {
+    "ideas": 0,
+    "script_id": "",
+    "video_id": "",
+    "upload_success": false,
+    "youtube_video_id": null,
+    "success": false
+  }
+}
