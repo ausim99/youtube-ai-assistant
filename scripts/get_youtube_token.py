@@ -6,10 +6,7 @@ import pickle
 
 from google_auth_oauthlib.flow import InstalledAppFlow
 
-SCOPES = [
-    "https://www.googleapis.com/auth/youtube.upload",
-    "https://www.googleapis.com/auth/youtube",
-]
+SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
 
 CREDENTIALS_FILE = "client_secret.json"
 
