@@ -69,7 +69,10 @@ async def run():
     log("STEP 1/8", "Generating content ideas...")
     try:
         from services.agent_service import AgentService
-        from database.session import async_session
+        from database.session import async_session, init_db
+
+        log("INIT", "Creating database tables...")
+        await init_db()
 
         async with async_session() as db:
             service = AgentService(db)
