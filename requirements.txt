@@ -31,7 +31,7 @@ anthropic==0.42.0
 # TTS
 google-cloud-texttospeech==2.21.0
 elevenlabs==1.50.0
-azure-cognitiveservices-speech==1.41.0
+azure-cognitiveservices-speech==1.41.1
 
 # Video & Image
 moviepy==2.0.0.dev2
