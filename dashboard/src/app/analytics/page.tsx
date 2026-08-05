@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { TrendingUp } from "lucide-react";
 import { api, PipelineResult } from "@/lib/api";
 
 export default function AnalyticsPage() {

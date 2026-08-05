@@ -3,13 +3,9 @@ const DATA_URL =
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
-async function fetchJSON<T>(url: string): Promise<T> {
-  const res = await fetch(url, { next: { revalidate: 300 } });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
-}
-
 import type { DashboardStats, PipelineRequest } from "@/types";
+
+async function fetchJSON<T>(url: string): Promise<T> {
 
 export interface PipelineResult {
   last_run: string;

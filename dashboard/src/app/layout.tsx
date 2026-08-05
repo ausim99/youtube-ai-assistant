@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
@@ -60,9 +61,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en" className={darkMode ? "dark" : ""} suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: `try { if (!localStorage.getItem("theme") || localStorage.getItem("theme") === "dark") document.documentElement.classList.add("dark"); } catch(e){}` }} />
-      </head>
       <body className="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
         {mounted ? (
           <div className="min-h-screen flex">

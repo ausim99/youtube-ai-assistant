@@ -41,7 +41,7 @@ export default function UploadsPage() {
               <ExternalLink size={16} /> youtube.com/watch?v={ytId}
             </a>
           )}
-          <p className="text-xs text-gray-500 mt-3">{lastRun.last_run}</p>
+          <p className="text-xs text-gray-500 mt-3">{lastRun?.last_run}</p>
         </div>
       ) : (
         <div className="text-center py-12 text-gray-400">
