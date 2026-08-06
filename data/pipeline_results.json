@@ -1,37 +1,13 @@
 {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-  "last_run": "2026-08-05 15:47:11 UTC",
-  "category": "ai-tools",
+  "last_run": "2026-08-06 18:25:00 UTC",
+  "category": "claude",
   "resolution": "1080x1920",
   "results": {
     "ideas": 1,
-    "script_id": "26a50cf6-350e-4dd3-898a-762f84a45ae3",
-    "video_id": "e925e4c7-c77e-4865-81f9-3490cbe2dc96",
+    "script_id": "30ec8cee-a920-4b83-8b65-2a795b434dbf",
+    "video_id": "8a1dd774-4845-4dd9-bdff-8b2a6a8b8576",
     "upload_success": true,
-    "youtube_video_id": "LDWZ-LK5Nh8",
-=======
-  "last_run": "2026-08-05 16:37:59 UTC",
-  "category": "automation",
-  "resolution": "1080x1920",
-  "results": {
-    "ideas": 1,
-    "script_id": "9b621f27-1461-4c0a-9a91-ff8d5d43b13f",
-    "video_id": "111b0c65-e1c2-4451-a495-7926405be7ba",
-    "upload_success": true,
-    "youtube_video_id": "IcD3RMq8ErQ",
->>>>>>> Stashed changes
-=======
-  "last_run": "2026-08-05 16:40:42 UTC",
-  "category": "gemini",
-  "resolution": "1080x1920",
-  "results": {
-    "ideas": 1,
-    "script_id": "bf65fd10-9ed1-41d1-a116-38dc3b25401d",
-    "video_id": "502373fb-ad5d-41b5-8651-e3b10483a0ae",
-    "upload_success": true,
-    "youtube_video_id": "c0J54s13gb8",
->>>>>>> Stashed changes
+    "youtube_video_id": "3Ghz4zzXsSY",
     "success": true
   }
 }
